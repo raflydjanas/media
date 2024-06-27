@@ -1,13 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { useUserContext } from "@/context/AuthContext";
+import { useSignInAccount } from "@/lib/react-query/querisAndMutations";
 import { SigninValidation } from "@/lib/Validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 const SignInForm = () => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
+
+  //Query
+  const { mutateAsync: signInaccount } = useSignInAccount();
+
   // 1. Define your form.
   const form = useForm<z.infer<typeof SigninValidation>>({
     resolver: zodResolver(SigninValidation),
@@ -18,8 +28,29 @@ const SignInForm = () => {
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof SigninValidation>) {
-    console.log(values);
+  async function onSubmit(user: z.infer<typeof SigninValidation>) {
+    const session = await signInaccount(user);
+    console.log(session);
+
+    if (!session) {
+      toast({
+        title: "Login failed, Please try again",
+      });
+      return;
+    }
+
+    const isLoggedIn = await checkAuthUser();
+
+    if (isLoggedIn) {
+      form.reset();
+
+      navigate("/");
+    } else {
+      toast({
+        title: "Something went wrong, Please try again",
+      });
+      return;
+    }
   }
 
   return (
@@ -58,7 +89,7 @@ const SignInForm = () => {
             )}
           />
           <Button type="submit" className="shad-button_primary">
-            Submit
+            {isUserLoading ? "Loading..." : "Sign In"}
           </Button>
 
           <p className="text-small-regular text-light-2 text-center mt-2">
