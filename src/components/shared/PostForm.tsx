@@ -8,21 +8,23 @@ import { z } from "zod";
 import { Models } from "appwrite";
 import { Textarea } from "../ui/textarea";
 import FileUploader from "./FileUploader";
-import { useCreatePost } from "@/lib/react-query/querisAndMutations";
+import { useCreatePost, useUpdatePost } from "@/lib/react-query/querisAndMutations";
 import { useUserContext } from "@/context/AuthContext";
 import { useToast } from "../ui/use-toast";
 import { useNavigate } from "react-router-dom";
 
 type PostFormProps = {
   post?: Models.Document;
-  //   action: "create" | "update";
+  action: "create" | "update";
 };
 
-const PostForm = ({ post }: PostFormProps) => {
-  const { mutateAsync: createPost, isPending: isCreatePending } = useCreatePost();
+const PostForm = ({ post, action }: PostFormProps) => {
   const { user } = useUserContext();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const { mutateAsync: createPost, isPending: isCreatePending } = useCreatePost();
+  const { mutateAsync: updatePost, isPending: isUpdatePending } = useUpdatePost();
 
   const form = useForm<z.infer<typeof PostValidation>>({
     resolver: zodResolver(PostValidation),
@@ -35,20 +37,37 @@ const PostForm = ({ post }: PostFormProps) => {
   });
 
   const onSubmit = async (values: z.infer<typeof PostValidation>) => {
-    const newPost = await createPost({
-      ...values,
-      userId: user?.id,
-    });
-
-    console.log("🚀 ~ onSubmit ~ newPost:", newPost);
-
-    if (!newPost) {
-      toast({
-        title: "Something went wrong, Please try again",
+    if (action === "update") {
+      const updatedPost = await updatePost({
+        ...values,
+        postId: post?.$id as string,
+        imageId: post?.imageId,
+        imageUrl: post?.imageUrl,
       });
-    }
 
-    return navigate("/");
+      if (!updatedPost) {
+        toast({
+          title: "Something went wrong, Please try again",
+        });
+      }
+
+      return navigate(`/posts/${post?.$id}`);
+    } else {
+      const newPost = await createPost({
+        ...values,
+        userId: user?.id,
+      });
+
+      console.log("🚀 ~ onSubmit ~ newPost:", newPost);
+
+      if (!newPost) {
+        toast({
+          title: "Something went wrong, Please try again",
+        });
+      }
+
+      return navigate("/");
+    }
   };
   return (
     <Form {...form}>
@@ -110,7 +129,7 @@ const PostForm = ({ post }: PostFormProps) => {
             Cancel
           </Button>
           <Button type="submit" className="shad-button_primary whitespace-nowrap">
-            {isCreatePending ? "Posting..." : "Post"}
+            {isCreatePending || isUpdatePending ? "Posting..." : "Post"}
           </Button>
         </div>
       </form>
