@@ -203,3 +203,44 @@ export const updatePost = async (post: IUpdatePost) => {
     console.log(error);
   }
 };
+
+export const likePost = async (postId: string, likesArray: string[]) => {
+  try {
+    const updatedPost = await databases.updateDocument(appwriteConfig.databaseId, appwriteConfig.postCollectionId, postId, {
+      likes: likesArray,
+    });
+
+    if (!updatedPost) throw Error;
+
+    return updatedPost;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const savePost = async (userId: string, postId: string) => {
+  try {
+    const updatePost = await databases.createDocument(appwriteConfig.databaseId, appwriteConfig.saveCollectionId, ID.unique(), {
+      post: postId,
+      user: userId,
+    });
+
+    if (!updatePost) throw Error;
+
+    return updatePost;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const deleteSavedPost = async (savedRecordId: string) => {
+  try {
+    const statusCode = await databases.deleteDocument(appwriteConfig.databaseId, appwriteConfig.saveCollectionId, savedRecordId);
+
+    if (!statusCode) throw Error;
+
+    return { status: "ok" };
+  } catch (error) {
+    console.log(error);
+  }
+};

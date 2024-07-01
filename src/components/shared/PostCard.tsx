@@ -10,7 +10,6 @@ type PostCardProps = {
 
 const PostCard = ({ post }: PostCardProps) => {
   const { user } = useUserContext();
-  console.log("🚀 ~ PostCard ~ post:", post);
 
   if (!post.creator) return;
 
@@ -51,7 +50,7 @@ const PostCard = ({ post }: PostCardProps) => {
         <img src={post.imageUrl || "/assets/images/profile-placeholder.svg"} alt="post-result" className="post-card_img" />
       </Link>
 
-      <PostStats />
+      <PostStats post={post} userId={user?.id} />
     </div>
   );
 };
