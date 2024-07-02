@@ -244,3 +244,33 @@ export const deleteSavedPost = async (savedRecordId: string) => {
     console.log(error);
   }
 };
+
+export async function getInfinitePosts({ pageParams }: { pageParams?: number }) {
+  const queries: any[] = [Query.orderDesc("$createdAt"), Query.limit(10)];
+
+  if (pageParams) {
+    queries.push(Query.cursorAfter(pageParams.toString()));
+  }
+
+  try {
+    const posts = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.postCollectionId, queries);
+
+    if (!posts) throw Error;
+
+    return posts;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export const searchPosts = async (searchTerm: string) => {
+  try {
+    const posts = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.postCollectionId, [Query.search("caption", searchTerm)]);
+
+    if (!posts) throw Error;
+
+    return posts;
+  } catch (error) {
+    console.log(error);
+  }
+};
