@@ -274,3 +274,42 @@ export const searchPosts = async (searchTerm: string) => {
     console.log(error);
   }
 };
+
+export const getPostById = async (postId: string) => {
+  try {
+    const postsId = await databases.getDocument(appwriteConfig.databaseId, appwriteConfig.postCollectionId, postId);
+
+    return postsId;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const deletePost = async (postId?: string, imageId?: string) => {
+  if (!postId || !imageId) return;
+  try {
+    const statusCode = await databases.deleteDocument(appwriteConfig.databaseId, appwriteConfig.postCollectionId, postId);
+
+    if (!statusCode) throw Error;
+
+    await deleteFile(imageId);
+
+    return { status: "ok" };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getUserPosts = async (userId: string) => {
+  if (!userId) return;
+
+  try {
+    const post = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.postCollectionId, [Query.equal("creator", userId), Query.orderDesc("$createdAt")]);
+
+    if (!post) throw Error;
+
+    return post;
+  } catch (error) {
+    console.log(error);
+  }
+};
