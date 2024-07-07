@@ -8,6 +8,7 @@ type UserCardProps = {
 
 const UserCard = ({ user }: UserCardProps) => {
   console.log("🚀 ~ UserCard ~ user:", user);
+
   return (
     <Link to={`/profile/${user.$id}`} className="user-card">
       <img src={user?.imageUrl} alt="creator-profile" className="rounded-full w-14 h-14" />

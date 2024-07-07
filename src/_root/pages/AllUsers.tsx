@@ -7,7 +7,6 @@ const AllUsers = () => {
   const { toast } = useToast();
 
   const { data: creators, isLoading, isError: isErrorCreators } = useGetUsers();
-  console.log("🚀 ~ AllUsers ~ creators:", creators);
 
   if (isErrorCreators) {
     toast({
